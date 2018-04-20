@@ -1,4 +1,4 @@
-package com.cources.OnlineCources;
+package com.oc;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
