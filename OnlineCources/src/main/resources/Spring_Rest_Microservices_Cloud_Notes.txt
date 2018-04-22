@@ -250,4 +250,30 @@ Add below dependencies in pom.xml to enable with HATEOAS.
 **************Internationalization[I18N]************
 -------------------------------------------------	
 > TO enable responses with multilanguage support.
-> 
+> Add below method to @SpringBootApplication enabled class.
+	@Bean
+	public LocaleResolver localeResover() {
+		//BElow one is to read the locale data from header.
+		AcceptHeaderLocaleResolver acl = new AcceptHeaderLocaleResolver();
+		acl.setDefaultLocale(Locale.US);
+		return acl;
+	}
+
+> Add Base prop name in applciagtion.properties file.
+	-spring.messages.basename=messages
+
+>Create messages.properties file with respective labels and there locale value.
+		messages.properties
+		messages_fr.properties
+	
+> Add MessageSource in class.
+	@RestController
+	public class HelloWorld {
+		@Autowired
+		MessageSource ms;
+		@GetMapping("/hello-world-bean-i18n")
+		public MessageBean getHelloWorldBeanPath() {
+			return new MessageBean(ms.getMessage("oc.hello", LocaleContextHolder.getLocale()));
+		}
+	}
+	
