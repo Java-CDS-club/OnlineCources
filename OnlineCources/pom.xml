@@ -47,25 +47,24 @@
 		<!-- Content negotiation XML fmt. end. -->
 
 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-tomcat</artifactId>
-				</exclusion>
-			</exclusions>
+			<!-- <exclusions> <exclusion> <groupId>org.springframework.boot</groupId> 
+				<artifactId>spring-boot-starter-tomcat</artifactId> </exclusion> </exclusions> -->
 		</dependency>
 		<!-- <dependency> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-starter-tomcat</artifactId> 
 			<scope>provided</scope> </dependency> -->
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-		</dependency>
+		<!-- <dependency> <groupId>javax.servlet</groupId> <artifactId>javax.servlet-api</artifactId> 
+			</dependency> -->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -89,41 +88,22 @@
 		</dependency>
 	</dependencies>
 
-	<!-- <build> <plugins> <plugin> <groupId>org.springframework.boot</groupId> 
-		<artifactId>spring-boot-maven-plugin</artifactId> </plugin> </plugins> </build> -->
 	<build>
 		<plugins>
-			<!-- Package as an executable jar/war -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-war</id>
-						<phase>install</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>${project.groupId}</groupId>
-									<artifactId>${project.artifactId}</artifactId>
-									<version>${project.version}</version>
-									<type>${project.packaging}</type>
-									<overWrite>true</overWrite>
-									<outputDirectory>C:\SUHAIL\softwares\jboss-eap-7.1\standalone\deployments</outputDirectory>
-									<destFileName>${project.build.finalName}.${project.packaging}</destFileName>
-								</artifactItem>
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
+	<!-- <build> <plugins> Package as an executable jar/war <plugin> <groupId>org.springframework.boot</groupId> 
+		<artifactId>spring-boot-maven-plugin</artifactId> </plugin> <plugin> <groupId>org.apache.maven.plugins</groupId> 
+		<artifactId>maven-dependency-plugin</artifactId> <executions> <execution> 
+		<id>copy-war</id> <phase>install</phase> <goals> <goal>copy</goal> </goals> 
+		<configuration> <artifactItems> <artifactItem> <groupId>${project.groupId}</groupId> 
+		<artifactId>${project.artifactId}</artifactId> <version>${project.version}</version> 
+		<type>${project.packaging}</type> <overWrite>true</overWrite> <outputDirectory>C:\SUHAIL\softwares\jboss-eap-7.1\standalone\deployments</outputDirectory> 
+		<destFileName>${project.build.finalName}.${project.packaging}</destFileName> 
+		</artifactItem> </artifactItems> </configuration> </execution> </executions> 
+		</plugin> </plugins> </build> -->
 </project>

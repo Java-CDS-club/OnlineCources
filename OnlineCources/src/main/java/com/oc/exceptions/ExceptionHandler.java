@@ -20,7 +20,7 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 	
 	@org.springframework.web.bind.annotation.ExceptionHandler(UserNotFoundException.class)
-	public  ResponseEntity<Object> handleAllException(UserNotFoundException ex, WebRequest request) {
+	public  ResponseEntity<Object> userNotFoundException(UserNotFoundException ex, WebRequest request) {
 		ExceptionModel em = new ExceptionModel(new Date(), ex.getMessage(), request.getDescription(false));
 		return new ResponseEntity<Object>(em, HttpStatus.NOT_FOUND);
 	}

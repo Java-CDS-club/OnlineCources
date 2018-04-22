@@ -39,10 +39,9 @@ public class UserController {
 			throw new UserNotFoundException("User not found, id-"+id);
 		}
 		
-		Resource<User> resource = new Resource<User>(user);
-		ControllerLinkBuilder linkTo = linkTo(methodOn(this.getClass()).allUsers());
-		resource.add(linkTo.withRel("all-users"));
 		
+		ControllerLinkBuilder linkTo = linkTo(methodOn(this.getClass()).allUsers());
+		Resource<User> resource = new Resource<User>(user, linkTo.withRel("all-users"));		
 		return resource; 
 	}
 
@@ -50,9 +49,14 @@ public class UserController {
 	public ResponseEntity<User> saveUser(@Valid @RequestBody User user){
 		User createdUser = userDaoServices.saveUser(user);
 		
-		URI location =  ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/{id}").buildAndExpand(createdUser.getId()).toUri();
+		URI location =  ServletUriComponentsBuilder
+						.fromCurrentContextPath()
+						.path("/user/{id}")
+						.buildAndExpand(createdUser.getId())
+						.toUri();
 		
-		return ResponseEntity.created(location).build(); 
+		return ResponseEntity.created(location)
+				.build(); 
 	}
 
 	@DeleteMapping("/removeUser/{id}")
