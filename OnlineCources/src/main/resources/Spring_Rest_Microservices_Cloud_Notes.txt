@@ -1,0 +1,253 @@
+1. What is WebService?
+>Designed for machine-to-machine (or application-to-application) interaction
+>Should be interoperable - Not platform dependent
+>Should allow communication over a network
+
+2. SOAP[Simple Object Access Protocol]
+>Format - SOAP XML Request - SOAP XML Response
+>Transport
+	-SOAP over MQ
+	-SOAP over HTTP
+>Service Definition
+	-Request/Response Format
+	-Request Structure
+	-Response Structure
+	-End Point
+>WSDL[Web Services Description Language]
+
+3. REST[REpresentational State Transfer]
+>REST is a style of software architecture for distributed hypermedia systems
+>Key abstraction - Resource
+>A resource has an URI (Uniform Resource Identifier)
+	-/users/Ranga/todos/1
+	-/users/Ranga/todos
+	-/users/Ranga
+>A resource can have different representations
+	-XML
+	-HTML
+	-JSON
+>Example
+	-Create a User - POST /users
+	-Delete a User - DELETE /users/1
+	-Get all Users - GET /users
+	-Get one Users - GET /users/1
+
+>REST
+	-Data Exchange Format - No Restriction. JSON is popular
+>Transport
+	-Only HTTP
+>Service Definition
+	-No Standard. WADL/Swagger/…
+>REST vs SOAP
+	-Restrictions vs Architectural Approach
+	-Data Exchange Format
+	-Service Definition
+	-Transport
+	-Ease of implementation
+	
+-------------------------------------------------
+**************Start with Spring Rest************
+-------------------------------------------------
+1. Use http://start.spring.io add required dependencies and download the zip. go to eclipse and imorts>existing maven project
+2. create from eclipse [new>other...>Spring Boot>Spring Starter Project] to create Rest Service[select Web, JPA, H2, Devtool].
+3. To Create manually: 
+	-Create new Maven project
+	-Open pom and add below dependencies.
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.1.RELEASE</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!--Use below tomcat dependency with provided scope, if application deploy in container other then tomcat like Jboss and all-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
+		</dependency>	
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+	</dependencies>
+	-Create a class with main method and annoted it like below
+		@SpringBootApplication
+		@ComponentScan("com.oc")//annotation to let spring know to read form current and all the sub packages from.
+		public class OnlineCourcesApplication extends SpringBootServletInitializer[use only of app has to run in other container then embedded, tomcat] {
+			public static void main(String[] args) {
+				SpringApplication.run(OnlineCourcesApplication.class, args);
+			}
+			
+			@Override//from SpringBootServletInitializer to support your application other then tomcal containers.
+			protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+				return builder.sources(OnlineCourcesApplication.class);
+			}
+		}	
+
+4. 	Create RestCOntroller and use respective mapping annotaiton to create endpoints as below.
+    @RestController
+	public class HelloWorld {
+		@GetMapping("/hello-world")
+		public String getHello() {
+			return "Hello World";
+		}
+		
+		likewise there are
+		@PostMapping
+		@DeleteMapping
+		@PutMapping
+		@PatchMapping
+		@RequestMapping
+		
+5. @SpringBootApplication internally uses below annotation
+	-@SpringBootConfiguration//internally uses @Configuration to let spring know as this is configuration class and build to returns the beans.
+	-@EnableAutoConfiguration//responsible to give power to spring application to configure the minimum dependenciesfor developer like below.
+		-DispatcherServlet, ViewResolver, URL Mappings and so on...
+	-@ComponentScan
+		-To read the componet classes from current and sub packages of the class.
+
+6. How Spring RestController able to convert Object to Json and Json to Object?
+> Internally @RestController uses @ResponseBody which is built to converrt the Onj to Json and Json to Obj and it uses internally MessageConverter in such case Jackson API is that converter to convert the same.
+>4.0 onwards it can be applied on top of Class itself instead of method level.
+
+7. @PathVariable
+>Used to send data along with URI path.
+	EX: @GetMapping("/hello-world-bean/{name}")
+		public MessageBean getHelloWorldBeanPath(@PathVariable String name) {
+			return new MessageBean(String.format("Hello World, %s", name));
+		}
+		
+8. 	@RequestBody
+>Used to map the coming JSON data to Object using MessageConverte.[class should have default constructor along with setter and getter to run it.]
+	EX:@PostMapping("/saveUser")
+		public void saveUser(@RequestBody User user){
+			userDaoServices.saveUser(user);
+		}
+		
+9. Create the URI of resource which created/saved by user.
+> Use ServletUriComponentsBuilder to get the access over context path and resource locations. below [/user/{id}] is the resource URI to get the user based on id.
+	EX: @PostMapping("/saveUser")
+		public ResponseEntity<User> saveUser(@Valid @RequestBody User user){
+			User createdUser = userDaoServices.saveUser(user);
+			
+			URI location =  ServletUriComponentsBuilder
+							.fromCurrentContextPath()
+							.path("/user/{id}")
+							.buildAndExpand(createdUser.getId())
+							.toUri();
+			
+			return ResponseEntity
+					.created(location)
+					.build(); 
+		}
+		
+10. ResponseEntity to add the status code and additional information in header. in above example ResponseEntity.created internaly will push the status code 201 in case of successfull creation of resource.
+
+-------------------------------------------------
+**************ExceptionHandling************
+-------------------------------------------------
+1. @ResponseStatus:
+> To send the status code along with header in case of exception.
+	EX:
+	@ResponseStatus(value=HttpStatus.NOT_FOUND)
+	public class UserNotFoundException extends RuntimeException {
+		public UserNotFoundException(String message) {
+			super(message);
+		}
+	}
+	
+2. Design Exception Handling.
+	-Create Exception model class like below with default, paramatrized construcctor and setters and getters..
+		public class ExceptionModel {
+			private Date timestamp;
+			private String message;//Exception message.
+			private String detail;//Exception details.
+		}
+	
+	-Create @ControllerAdvice[annotaion used to create the globale resource application level.] with ResponseEntityExceptionHandler[extend to override the default behavior for exception handling]
+		@ControllerAdvice
+		public class ExceptionHandler extends ResponseEntityExceptionHandler {
+			@ExceptionHandler(Exception.class)
+			public  ResponseEntity<Object> handleAllException(Exception ex, WebRequest request) {
+				ExceptionModel em = new ExceptionModel(new Date(), ex.getMessage(), request.getDescription(false));
+				return new ResponseEntity<Object>(em, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+			@ExceptionHandler(UserNotFoundException.class)
+			public  ResponseEntity<Object> handleAllException(UserNotFoundException ex, WebRequest request) {
+				ExceptionModel em = new ExceptionModel(new Date(), ex.getMessage(), request.getDescription(false));
+				return new ResponseEntity<Object>(em, HttpStatus.NOT_FOUND);
+			}
+			
+			//Overriden method from ResponseEntityExceptionHandler, will be invoked if there is any validation failure respect to @Valid with @RequestBody.
+			@Override
+			protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+					HttpHeaders headers, HttpStatus status, WebRequest request) {
+				ExceptionModel em = new ExceptionModel(new Date(),"Validation Failed",ex.getMessage());
+				return new ResponseEntity<Object>(em, HttpStatus.BAD_REQUEST);
+			}
+		}	
+
+8. @Valid:
+>To Vlidate the content corresponding to annotations applied on Model class. 
+	Ex: @PostMapping("/saveUser")
+		public ResponseEntity<User> saveUser(@Valid @RequestBody User user){
+			/**/
+		}
+	
+	User Class: with setters and getters and constructor
+		public class User {
+			private Integer id;
+			
+			@Size(min=2, message="Name should be minimum 2 char.")
+			private String name;
+			
+			@Past(message="DOB should be past date only.")
+			private Date dob;
+		
+		}
+		
+-------------------------------------------------
+**************HATEOAS[Hypermedia As The Engine Of Application State]************
+-------------------------------------------------
+ITs usefull to supply the response as Resources. 
+Ex: If user is looking for single user information then I can also supply the URL for all users in response as additional content.
+
+Add below dependencies in pom.xml to enable with HATEOAS.
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-hateoas</artifactId>
+	</dependency>
+	
+>Below is the code to add send resource along with inforamtion using ControllerLinkBuilder and Resource from HATEOAS.
+	EX:Use static import to directly work with static methods from HATE pack.
+	
+	import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
+	
+	@GetMapping("/user/{id}")
+	public Resource<User> getUser(@PathVariable int id) {
+		User user = userDaoServices.getUser(id);
+		if(user==null) {
+			throw new UserNotFoundException("User not found, id-"+id);
+		}
+		ControllerLinkBuilder linkTo = linkTo(methodOn(this.getClass()).allUsers());
+		Resource<User> resource = new Resource<User>(user, linkTo.withRel("all-users"));		
+		return resource; 
+	}
+	
+-------------------------------------------------
+**************Internationalization[I18N]************
+-------------------------------------------------	
+> TO enable responses with multilanguage support.
+> 
