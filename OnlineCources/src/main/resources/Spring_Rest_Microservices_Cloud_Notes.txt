@@ -221,7 +221,7 @@
 -------------------------------------------------
 **************HATEOAS[Hypermedia As The Engine Of Application State]************
 -------------------------------------------------
-ITs usefull to supply the response as Resources. 
+Its usefull to supply the response as Resources. 
 Ex: If user is looking for single user information then I can also supply the URL for all users in response as additional content.
 
 Add below dependencies in pom.xml to enable with HATEOAS.
@@ -277,3 +277,105 @@ Add below dependencies in pom.xml to enable with HATEOAS.
 		}
 	}
 	
+-------------------------------------------------
+******Enable XML Response[Content negotiation]******
+-------------------------------------------------	
+By default SP Boot support Json Req and Res. To enable it with XML  below dependencies needs to be added.
+
+1. Add below dependencies in pom.
+   	<dependency>
+		<groupId>com.fasterxml.jackson.dataformat</groupId>
+		<artifactId>jackson-dataformat-xml</artifactId>
+	</dependency>
+	
+> Send Accept-->application/xml in request header.
+
+-------------------------------------------------
+******Swagger, Documentation******
+-------------------------------------------------
+Tools to create/document your API with validation and required information.
+
+1. Add below dependencies in pom.
+	<dependency>
+		<groupId>io.springfox</groupId>
+		<artifactId>springfox-swagger2</artifactId>
+		<version>2.4.0</version>
+	</dependency>
+	<dependency>
+		<groupId>io.springfox</groupId>
+		<artifactId>springfox-swagger-ui</artifactId>
+		<version>2.4.0</version>
+	</dependency>
+
+>Create a class and add annotation like belo
+	@Configuration
+	@EnableSwagger2
+	public class SwaggerDocket {
+	
+		@Bean
+		public Docket getDocket() {
+			return new Docket(DocumentationType.SWAGGER_2);
+		}
+	}
+	
+>Default URLS:
+	-localhost:8080/V2/api-docs[to get the JSON fmt of resources]
+	-localhost:8080/swagger-ui.html[to get the HTML view resources]
+	
+>To add some additional information or customize existing info below are the annotations.
+	-	@Configuration
+		@EnableSwagger2
+		public class SwaggerDocket {
+		
+			private static final ApiInfo DEFAULT_API_INFO = new ApiInfo("Online Cources", "OC Documentation", "1.0", "urn:tos",
+					new Contact("Suhail Mansoori", "", "9666919222"), "Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0");
+			
+			private static final Set<String> PUBLISER_CONSUMER = new HashSet<String>(Arrays.asList("application/xml","application/json"));
+		
+			@Bean
+			public Docket getDocket() {
+				return new Docket(DocumentationType.SWAGGER_2)
+						.apiInfo(DEFAULT_API_INFO)
+						.consumes(PUBLISER_CONSUMER)
+						.produces(PUBLISER_CONSUMER);
+			}
+		}
+		
+>To Add info related to specific saervice and validation use below annotations.
+	-@ApiModel: to define class as part of API.
+	-@ApiModelProperty: to add the validation messages.
+	
+	@ApiModel
+	public class User {
+		private Integer id;
+		
+		@ApiModelProperty(value="Name should be minimum 2 char.")
+		@Size(min=2, message="Name should be minimum 2 char.")
+		private String name;
+		
+		@ApiModelProperty(value="DOB should be past date only.")
+		@Past(message="DOB should be past date only.")
+		private Date dob;
+	}
+	
+-------------------------------------------------
+******Spring Boot Actuator******
+-------------------------------------------------
+This is another tool to monitor Spring container and there services. for example heap and all other memory utilization.
+
+> Add below dependencies to enable app with actuator.
+	-<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-actuator</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>org.springframework.data</groupId>
+		<artifactId>spring-data-rest-hal-browser</artifactId>
+	</dependency>
+
+> Add below line in application.properties to enable the info.
+Note: This is very costly[in terms of memory and performance] to include everything. Its better to include only packages that required monitoring.
+
+management.endpoints.web.exposure.include=*
+
+>
