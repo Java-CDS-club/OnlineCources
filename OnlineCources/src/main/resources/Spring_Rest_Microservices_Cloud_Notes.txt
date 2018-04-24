@@ -378,4 +378,108 @@ Note: This is very costly[in terms of memory and performance] to include everyth
 
 management.endpoints.web.exposure.include=*
 
->
+> Use below links to access the actuator.
+HAL Browser page: http://localhost:9999/OC/ --> /OC/actuator
+Actuator: http://localhost:9999/OC/actuator
+
+-------------------------------------------------
+******Spring Filtering******
+-------------------------------------------------
+Static Filtering:
+
+If there is need to ignore some of the fields as part of response.
+
+Can be used at class or field laevel.
+	@JsonIgnoreProperties(value= {"lastName"})
+	public class FilterUser {
+		private String firstName;
+		@JsonIgnore
+		private String middleName;
+		private String lastName;
+	}
+	
+Dynamic Filtering:
+Exclude or include data based on conditions.
+-	@GetMapping("/getDynamicFilteredUser/{prod}")
+	public MappingJacksonValue getDynamicFilteredUser(@PathVariable String prod) {
+		
+		DynamicFilteredUser dfu = new DynamicFilteredUser("Suhail","Ahamad", "Mansoori");
+		MappingJacksonValue mjv = new MappingJacksonValue(dfu);
+		
+		PropertyFilter pf = null;
+		if("f".equalsIgnoreCase(prod)) {
+			pf = SimpleBeanPropertyFilter.filterOutAllExcept("firstName");
+		}else if("fm".equalsIgnoreCase(prod)){
+			pf = SimpleBeanPropertyFilter.filterOutAllExcept("firstName", "lastName");
+		}else{
+			pf = SimpleBeanPropertyFilter.filterOutAllExcept("firstName", "lastName", "middleName");
+		}
+		
+		mjv.setFilters(new SimpleFilterProvider().addFilter("filterLastName", pf));
+		return mjv;
+	}
+
+Also annotated the respective bean as below.
+	@JsonFilter("filterLastName")
+	public class DynamicFilteredUser {}
+
+-------------------------------------------------
+****** Spring Versioning ******
+-------------------------------------------------
+mechanism to respond back with different set of data based of header/request version of services.
+1.	Accept-Header versioning or MIME type versioning(produces)
+2.	Header Versioning
+3.	Request Param Versioning
+4.	URI Versioning
+
+@RestController
+public class VersionController {
+
+	//URI Versioning
+	@GetMapping("/V1/data")
+	public String getURIVersion1() {
+		return "URI Version1";
+	}
+	
+	@GetMapping("/V2/data")
+	public String getURIVersion2() {
+		return "URI Version2";
+	}
+	
+	//Parameter Versioning
+	@GetMapping(value="/data", params="version=1" )
+	public String getPramVersion1() {
+		return "Param Version1";
+	}
+	
+	@GetMapping(value="/data",  params="version=2")
+	public String getPramVersion2() {
+		return "Param Version2";
+	}
+	
+	//Header Versioning
+	@GetMapping(value="/data", headers="X-API-VERSION=1" )
+	public String getHeaderVersion1() {
+		return "Header Version1";
+	}
+	
+	@GetMapping(value="/data",  headers="X-API-VERSION=2")
+	public String getHeaderVersion2() {
+		return "Header Version2";
+	}
+	
+	//Produces Versioning
+	@GetMapping(value="/data", produces= {"application/v1+xml","application/v1+json"} )
+	public Version getProducesVersion1() {
+		return new Version("Produces Version1");
+	}
+	
+	@GetMapping(value="/data",  produces= {"application/v2+xml","application/v2+json"})
+	public Version getProducesVersion2() {
+		return new Version("Produces Version2");
+	}
+}
+
+
+
+
